@@ -23,14 +23,28 @@ For a request going from client to server:
 
 
 ### Ping the Server for keep alive
-`*\nPING`
+`#\nPING`
 
-`*\nPONG`
+`#\nPONG`
 
 ### Creating a Basket
-`*\nCREATE-BASKET\n[Basket-Name]`
+`=\nCREATE\n[Basket-Name]`
 
 `+\nOK`
+
+### Clear the Basket
+`=\nCLEAR\n[Basket-Name]`
+
+`+\nOK`
+
+`-\nBASKET NOT FOUND`
+
+### Deleting the Basket
+`=\nDROP\n[Basket-Name]`
+
+`+\nOK`
+
+`-\nBASKET NOT FOUND`
 
 ### Putting Value into a Basket
 `*\nSET\n[Basket-Name]\n[Key]\n[Value]`
@@ -40,7 +54,7 @@ For a request going from client to server:
 ### Getting Value from a Basket
 `*\nGET\n[Basket-Name]\n[Key]`
 
-`*\n[Value]`
+`:\n[Value]`
 
 `-\nKEY NOT FOUND`
 
@@ -64,16 +78,6 @@ For a request going from client to server:
 `$\nKEY_1\nKEY_2\nKEY_3`
 
 `-\nPATTERN NOT FOUND`
-
-### Clear the Basket
-`*\nSPILL\n[Basket-Name]`
-
-`-\nBASKET NOT FOUND`
-
-### Deleting the Basket
-`*\nTHROW\n[Basket-Name]`
-
-`-\nBASKET NOT FOUND`
 
 ---
 
