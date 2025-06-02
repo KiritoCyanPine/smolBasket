@@ -6,80 +6,146 @@ import (
 	"fmt"
 	"io"
 	"net"
-	"os"
 	"strings"
 
 	"github.com/KiritoCyanPine/smolBasket/encoder"
+	"github.com/chzyer/readline"
 )
 
 func main() {
-	conn, err := net.Dial("tcp", "localhost:9000")
+	conn, err := connectToServer("localhost:9000")
 	if err != nil {
-		panic(err)
+		fmt.Println("Error connecting:", err)
+		return
 	}
 	defer conn.Close()
 
-	fmt.Println("Connected to KV server at localhost:9000")
-	reader := bufio.NewReader(os.Stdin)
-	serverReader := bufio.NewReader(conn)
+	rl, err := setupReadline()
+	if err != nil {
+		fmt.Println("Readline error:", err)
+		return
+	}
+	defer rl.Close()
+
+	fmt.Println("smolBasket CLI (with history). Type 'exit' to quit.")
+	runClient(conn, rl)
+}
+
+func connectToServer(address string) (net.Conn, error) {
+	conn, err := net.Dial("tcp", address)
+	if err != nil {
+		return nil, err
+	}
+	return conn, nil
+}
+
+func setupReadline() (*readline.Instance, error) {
+	rl, err := readline.New("> ")
+	if err != nil {
+		return nil, err
+	}
+	return rl, nil
+}
+
+func runClient(conn net.Conn, rl *readline.Instance) {
+	encoder := encoder.RespEncoder{}
 
 	for {
-		fmt.Print("> ")
-		cmd, err := reader.ReadString('\n')
+		line, err := rl.Readline()
 		if err != nil {
-			fmt.Println("Input error:", err)
-			return
+			break // CTRL+C / CTRL+D
 		}
-
-		cmd = strings.TrimSpace(cmd)
-		if cmd == "" {
+		line = strings.TrimSpace(line)
+		if line == "" {
 			continue
 		}
+		if line == "exit" {
+			break
+		}
 
-		enc := encoder.RespEncoder{}
+		cmd := splitCommand(line)
+		resp := encoder.EncodeRESPCommand(cmd...)
 
-		line := strings.TrimSpace(cmd)
-		parts := strings.Fields(line)
-
-		_, err = conn.Write(enc.EncodeRESPCommand(parts...))
-		if err != nil {
+		if err := sendCommand(conn, resp); err != nil {
 			fmt.Println("Write error:", err)
-			return
+			break
 		}
 
-		var b bytes.Buffer
-
-		for {
-			buf, err := serverReader.ReadString('\n')
-			if err == io.EOF {
-				if len(line) > 0 {
-					// fmt.Printf("EOF : %s", buf)
-					b.WriteString(buf)
-				}
-				break
-			}
-
-			if err != nil {
-				fmt.Println("Read error:", err)
-				break
-			}
-
-			// fmt.Printf("%s", buf)
-			b.WriteString(buf)
-
-			if serverReader.Buffered() == 0 {
-				break
-			}
+		serverResponse, err := readServerResponse(conn)
+		if err != nil {
+			fmt.Println("Read error:", err)
+			break
 		}
 
-		fmt.Println("Server response:", b.String())
+		fmt.Println("Server response:", serverResponse)
 
-		reply, err := enc.DecodeRESP(bytes.NewReader(b.Bytes()))
+		reply, err := encoder.DecodeRESP(bytes.NewReader([]byte(serverResponse)))
 		if err != nil {
 			fmt.Println("Decode error:", err)
 			continue
 		}
 
-		fmt.Println("Decoded response:", reply)
+		fmt.Println("Decoded response:", reply, len(reply))
 	}
+}
+
+func sendCommand(conn net.Conn, command []byte) error {
+	_, err := conn.Write(command)
+	return err
+}
+
+func readServerResponse(conn net.Conn) (string, error) {
+	var b bytes.Buffer
+	serverReader := bufio.NewReader(conn)
+
+	for {
+		buf, err := serverReader.ReadString('\n')
+		if err == io.EOF {
+			if len(buf) > 0 {
+				b.WriteString(buf)
+			}
+			break
+		}
+		if err != nil {
+			return "", err
+		}
+
+		b.WriteString(buf)
+
+		if serverReader.Buffered() == 0 {
+			break
+		}
+	}
+
+	return b.String(), nil
+}
+
+func splitCommand(line string) []string {
+	var parts []string
+	var current strings.Builder
+	inQuotes := false
+
+	for _, char := range line {
+		switch char {
+		case '"':
+			inQuotes = !inQuotes
+		case ' ':
+			if inQuotes {
+				current.WriteRune(char)
+			} else {
+				if current.Len() > 0 {
+					parts = append(parts, current.String())
+					current.Reset()
+				}
+			}
+		default:
+			current.WriteRune(char)
+		}
+	}
+
+	if current.Len() > 0 {
+		parts = append(parts, current.String())
+	}
+
+	return parts
 }

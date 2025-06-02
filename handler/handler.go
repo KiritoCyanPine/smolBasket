@@ -46,7 +46,7 @@ func handleDatabaseCommand(enc encoder.Encoder, sm storage.Manager, command []st
 
 	switch commandName {
 	case "CREATE":
-		if len(command) < 2 {
+		if len(command) != 2 {
 			return nil, ErrInvalidCommand
 		}
 
@@ -57,7 +57,7 @@ func handleDatabaseCommand(enc encoder.Encoder, sm storage.Manager, command []st
 
 		return enc.EncodeRESPCommand("OK", "Basket created successfully"), nil
 	case "DROP":
-		if len(command) < 2 {
+		if len(command) != 2 {
 			return nil, ErrInvalidCommand
 		}
 
@@ -68,7 +68,7 @@ func handleDatabaseCommand(enc encoder.Encoder, sm storage.Manager, command []st
 
 		return enc.EncodeRESPCommand("OK"), nil
 	case "BASKET-INFO":
-		if len(command) < 2 {
+		if len(command) != 2 {
 			return nil, ErrInvalidCommand
 		}
 
@@ -80,6 +80,10 @@ func handleDatabaseCommand(enc encoder.Encoder, sm storage.Manager, command []st
 
 		return enc.EncodeRESPCommand(info), nil
 	case "LIST":
+		if len(command) != 2 {
+			return nil, ErrInvalidCommand
+		}
+
 		baskets, err := sm.List()
 		if err != nil {
 			return nil, err
@@ -109,7 +113,7 @@ func handleBasketCommand(enc encoder.Encoder, sm storage.Manager, command []stri
 
 	switch command[0] {
 	case "GET":
-		if len(command) < 3 {
+		if len(command) != 3 {
 			return nil, ErrInvalidCommand
 		}
 		key := command[2]
@@ -129,7 +133,7 @@ func handleBasketCommand(enc encoder.Encoder, sm storage.Manager, command []stri
 
 		return enc.EncodeRESPCommand("OK"), nil
 	case "DEL":
-		if len(command) < 3 {
+		if len(command) != 3 {
 			return nil, ErrInvalidCommand
 		}
 
@@ -138,12 +142,18 @@ func handleBasketCommand(enc encoder.Encoder, sm storage.Manager, command []stri
 
 		return enc.EncodeRESPCommand("OK"), nil
 	case "CLEAR":
+
+		if len(command) != 3 {
+			return nil, ErrInvalidCommand
+		}
+
 		db.Clear()
 		return enc.EncodeRESPCommand("OK"), nil
 	case "EXISTS":
-		if len(command) < 3 {
+		if len(command) != 3 {
 			return nil, ErrInvalidCommand
 		}
+
 		key := command[2]
 		exists := db.Exists(key)
 
@@ -152,7 +162,7 @@ func handleBasketCommand(enc encoder.Encoder, sm storage.Manager, command []stri
 		}
 		return enc.EncodeRESPCommand("-1"), nil
 	case "KEYS":
-		if len(command) < 3 {
+		if len(command) != 3 {
 			return nil, ErrInvalidCommand
 		}
 		pattern := command[2]
