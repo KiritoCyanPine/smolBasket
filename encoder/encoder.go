@@ -8,7 +8,7 @@ type Encoder interface {
 	// key myvalue`.
 	EncodeRESPCommand(cmd ...string) []byte
 	// DecodeRESP parses a single RESP reply (very basic, handles simple types).
-	DecodeRESP(r io.Reader) (string, error)
+	DecodeRESP(r io.Reader) ([]string, error)
 
 	// EncodeRESPError encodes an error message in RESP format.
 	EncodeRESPError(err error) []byte

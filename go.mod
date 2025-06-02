@@ -5,6 +5,7 @@ go 1.21.9
 require github.com/panjf2000/gnet v1.6.7
 
 require (
+	github.com/joho/godotenv v1.5.1 // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
 	go.uber.org/atomic v1.9.0 // indirect
 	go.uber.org/multierr v1.7.0 // indirect

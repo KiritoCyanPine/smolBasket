@@ -1,4 +1,4 @@
-package interpreter
+package handler
 
 const (
 	// LEVEL_NONE indicates no transaction level
@@ -13,7 +13,7 @@ const (
 
 func GetCommandLevel(command string) string {
 	switch command {
-	case "PING", "CLOSE-CONN", "STATS":
+	case "PING", "CLOSE-CONN":
 		return LEVEL_SERVICE
 	case "CREATE", "DROP", "BASKET-INFO", "LIST":
 		return LEVEL_DATABASE

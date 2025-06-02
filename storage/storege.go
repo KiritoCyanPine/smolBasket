@@ -2,20 +2,21 @@ package storage
 
 import (
 	"fmt"
+	"strconv"
 	"sync"
 
-	"github.com/KiritoCyanPine/smolBasket/Storage/basket"
+	"github.com/KiritoCyanPine/smolBasket/storage/basket"
 )
 
 type StorageManager struct {
-	Baskets map[string]*basket.Basket
+	Baskets map[string]basket.Database
 	m       *sync.RWMutex
 }
 
 // NewStorageManager creates a new instance of StorageManager.
 func NewStorageManager() *StorageManager {
 	return &StorageManager{
-		Baskets: make(map[string]*basket.Basket),
+		Baskets: make(map[string]basket.Database),
 		m:       &sync.RWMutex{},
 	}
 }
@@ -48,20 +49,17 @@ func (sm *StorageManager) Drop(name string) error {
 }
 
 // Info returns the status of the basket with the given name.
-func (sm *StorageManager) Info(name string) (Status, error) {
+func (sm *StorageManager) Info(name string) (string, error) {
 	sm.m.RLock()
 
 	db, exists := sm.Baskets[name]
 	if !exists {
-		return Status{}, fmt.Errorf("basket %s does not exist", name)
+		return "0", fmt.Errorf("basket %s does not exist", name)
 	}
 
 	sm.m.RUnlock()
 
-	return Status{
-		Name:      name,
-		ItemCount: db.Count(),
-	}, nil
+	return strconv.Itoa(db.Count()), nil
 }
 
 // List returns the names of all baskets.
@@ -75,4 +73,16 @@ func (sm *StorageManager) List() ([]string, error) {
 
 	sm.m.RUnlock()
 	return names, nil
+}
+
+func (sm *StorageManager) GetBasket(name string) (basket.Database, error) {
+	sm.m.RLock()
+	defer sm.m.RUnlock()
+
+	db, exists := sm.Baskets[name]
+	if !exists {
+		return nil, fmt.Errorf("basket %s does not exist", name)
+	}
+
+	return db, nil
 }
