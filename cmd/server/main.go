@@ -25,7 +25,7 @@ func (s *kvServer) OnInitComplete(server gnet.Server) (action gnet.Action) {
 func (s *kvServer) React(frame []byte, c gnet.Conn) (out []byte, action gnet.Action) {
 
 	if len(frame) == 0 {
-		return []byte("ERR Empty Frame\n"), gnet.None
+		return s.enc.EncodeRESPError(handler.ErrEmptyFrame), gnet.None
 	}
 
 	commands, err := s.enc.DecodeRESP(bytes.NewReader(frame))

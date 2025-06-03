@@ -8,4 +8,5 @@ var (
 	ErrConnectionClosed = errors.New("ERR Connection Closed")
 	ErrKeyNotFound      = errors.New("ERR Key Not Found")
 	ErrInvalidKeyFormat = errors.New("ERR Invalid Key Format")
+	ErrEmptyFrame       = errors.New("ERR Empty Frame")
 )
