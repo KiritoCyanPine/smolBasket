@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"log"
 
+	"github.com/KiritoCyanPine/smolBasket/configuration"
 	resp "github.com/KiritoCyanPine/smolBasket/encoder"
 	"github.com/KiritoCyanPine/smolBasket/handler"
 	"github.com/KiritoCyanPine/smolBasket/storage"
@@ -52,11 +53,15 @@ func main() {
 		enc:            encoder,
 	}
 
+	config := configuration.GetConfiguraation()
+
 	// Define the server address and options
-	address := "tcp://:9000"
+	address := "tcp://:" + config.Port
+
 	options := []gnet.Option{
-		gnet.WithMulticore(true),
-		gnet.WithReusePort(true),
+		gnet.WithMulticore(config.MultiCore),
+		gnet.WithReusePort(config.ReusePort),
+		gnet.WithLoadBalancing(config.LoadBalancing),
 	}
 
 	// Start the server and handle errors

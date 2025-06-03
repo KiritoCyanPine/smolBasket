@@ -8,12 +8,16 @@ import (
 	"net"
 	"strings"
 
+	"github.com/KiritoCyanPine/smolBasket/configuration"
 	"github.com/KiritoCyanPine/smolBasket/encoder"
+	"github.com/KiritoCyanPine/smolBasket/handler"
 	"github.com/chzyer/readline"
 )
 
 func main() {
-	conn, err := connectToServer("localhost:9000")
+
+	config := configuration.GetConfiguraation()
+	conn, err := connectToServer("localhost:" + config.Port)
 	if err != nil {
 		fmt.Println("Error connecting:", err)
 		return
@@ -63,6 +67,11 @@ func runClient(conn net.Conn, rl *readline.Instance) {
 			break
 		}
 
+		if line == "help" || line == "HELP" {
+			fmt.Println(handler.GetHelpText())
+			continue
+		}
+
 		cmd := splitCommand(line)
 		resp := encoder.EncodeRESPCommand(cmd...)
 
@@ -77,11 +86,10 @@ func runClient(conn net.Conn, rl *readline.Instance) {
 			break
 		}
 
-		fmt.Println("Server response:", serverResponse)
-
 		reply, err := encoder.DecodeRESP(bytes.NewReader([]byte(serverResponse)))
 		if err != nil {
 			fmt.Println("Decode error:", err)
+			fmt.Println("Use the `HELP` command to know about smolBasket-cli commands")
 			continue
 		}
 
