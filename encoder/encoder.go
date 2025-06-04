@@ -3,13 +3,13 @@ package encoder
 import "io"
 
 type Encoder interface {
-	// EncodeRESPCommand builds a RESP-compliant command like
+	// EncodeBAECommand builds a RESP like command like
 	// `SET my
 	// key myvalue`.
-	EncodeRESPCommand(cmd ...string) []byte
-	// DecodeRESP parses a single RESP reply (very basic, handles simple types).
-	DecodeRESP(r io.Reader) ([]string, error)
+	EncodeBAECommand(cmd ...string) []byte
+	// DecodeBAE parses a single BAE reply (very basic, handles simple types).
+	DecodeBAE(r io.Reader) ([]string, error)
 
-	// EncodeRESPError encodes an error message in RESP format.
-	EncodeRESPError(err error) []byte
+	// EncodeBAEError encodes an error message in BAE format.
+	EncodeBAEError(err error) []byte
 }

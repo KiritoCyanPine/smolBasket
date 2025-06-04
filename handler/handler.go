@@ -33,9 +33,9 @@ func handleServiceCommand(enc encoder.Encoder, command []string) ([]byte, error)
 
 	switch commandName {
 	case "PING":
-		return enc.EncodeRESPCommand("PONG"), nil
+		return enc.EncodeBAECommand("PONG"), nil
 	case "CLOSE-CONN":
-		return enc.EncodeRESPCommand("CLOSE-CONN"), ErrConnectionClosed
+		return enc.EncodeBAECommand("CLOSE-CONN"), ErrConnectionClosed
 	}
 	return nil, nil
 }
@@ -55,7 +55,7 @@ func handleDatabaseCommand(enc encoder.Encoder, sm storage.Manager, command []st
 			return nil, err
 		}
 
-		return enc.EncodeRESPCommand("OK", "Basket created successfully"), nil
+		return enc.EncodeBAECommand("OK", "Basket created successfully"), nil
 	case "DROP":
 		if len(command) != 2 {
 			return nil, ErrInvalidCommand
@@ -66,7 +66,7 @@ func handleDatabaseCommand(enc encoder.Encoder, sm storage.Manager, command []st
 			return nil, err
 		}
 
-		return enc.EncodeRESPCommand("OK"), nil
+		return enc.EncodeBAECommand("OK"), nil
 	case "BASKET-INFO":
 		if len(command) != 2 {
 			return nil, ErrInvalidCommand
@@ -78,7 +78,7 @@ func handleDatabaseCommand(enc encoder.Encoder, sm storage.Manager, command []st
 			return nil, err
 		}
 
-		return enc.EncodeRESPCommand(info), nil
+		return enc.EncodeBAECommand(info), nil
 	case "LIST":
 		if len(command) != 2 {
 			return nil, ErrInvalidCommand
@@ -93,7 +93,7 @@ func handleDatabaseCommand(enc encoder.Encoder, sm storage.Manager, command []st
 			return nil, ErrNoBasketFound
 		}
 
-		return enc.EncodeRESPCommand(baskets...), nil
+		return enc.EncodeBAECommand(baskets...), nil
 	}
 
 	return nil, nil
@@ -122,7 +122,7 @@ func handleBasketCommand(enc encoder.Encoder, sm storage.Manager, command []stri
 			return nil, ErrKeyNotFound
 		}
 
-		return enc.EncodeRESPCommand(value), nil
+		return enc.EncodeBAECommand(value), nil
 	case "SET":
 		if len(command) < 4 {
 			return nil, ErrInvalidCommand
@@ -131,7 +131,7 @@ func handleBasketCommand(enc encoder.Encoder, sm storage.Manager, command []stri
 		value := command[3]
 		db.Set(key, value)
 
-		return enc.EncodeRESPCommand("OK"), nil
+		return enc.EncodeBAECommand("OK"), nil
 	case "DEL":
 		if len(command) != 3 {
 			return nil, ErrInvalidCommand
@@ -140,7 +140,7 @@ func handleBasketCommand(enc encoder.Encoder, sm storage.Manager, command []stri
 		key := command[2]
 		db.Delete(key)
 
-		return enc.EncodeRESPCommand("OK"), nil
+		return enc.EncodeBAECommand("OK"), nil
 	case "CLEAR":
 
 		if len(command) != 3 {
@@ -148,7 +148,7 @@ func handleBasketCommand(enc encoder.Encoder, sm storage.Manager, command []stri
 		}
 
 		db.Clear()
-		return enc.EncodeRESPCommand("OK"), nil
+		return enc.EncodeBAECommand("OK"), nil
 	case "EXISTS":
 		if len(command) != 3 {
 			return nil, ErrInvalidCommand
@@ -158,9 +158,9 @@ func handleBasketCommand(enc encoder.Encoder, sm storage.Manager, command []stri
 		exists := db.Exists(key)
 
 		if exists {
-			return enc.EncodeRESPCommand("+1"), nil
+			return enc.EncodeBAECommand("+1"), nil
 		}
-		return enc.EncodeRESPCommand("-1"), nil
+		return enc.EncodeBAECommand("-1"), nil
 	case "KEYS":
 		if len(command) != 3 {
 			return nil, ErrInvalidCommand
@@ -171,9 +171,9 @@ func handleBasketCommand(enc encoder.Encoder, sm storage.Manager, command []stri
 			return nil, err
 		}
 		if len(keys) == 0 {
-			return enc.EncodeRESPCommand("nil"), nil
+			return enc.EncodeBAECommand("nil"), nil
 		}
-		return enc.EncodeRESPCommand(keys...), nil
+		return enc.EncodeBAECommand(keys...), nil
 	}
 	// If command does not match any known basket commands
 	// return an error indicating the command is invalid

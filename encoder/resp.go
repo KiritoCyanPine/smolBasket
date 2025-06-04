@@ -9,10 +9,9 @@ import (
 	"strings"
 )
 
-type RespEncoder struct{}
+type BaeEncoder struct{}
 
-// EncodeCommandToRESP builds a RESP-compliant command like `SET mykey myvalue`.
-func (enc RespEncoder) EncodeRESPCommand(cmd ...string) []byte {
+func (enc BaeEncoder) EncodeBAECommand(cmd ...string) []byte {
 	var b bytes.Buffer
 	b.WriteString(fmt.Sprintf("*%d\r\n", len(cmd)))
 	for _, arg := range cmd {
@@ -21,13 +20,13 @@ func (enc RespEncoder) EncodeRESPCommand(cmd ...string) []byte {
 	return b.Bytes()
 }
 
-func (enc RespEncoder) DecodeRESP(r io.Reader) ([]string, error) {
+func (enc BaeEncoder) DecodeBAE(r io.Reader) ([]string, error) {
 	reader := bufio.NewReader(r)
 	prefix, err := reader.ReadByte()
 	buffer := make([]string, 0)
 
 	if err != nil {
-		return buffer, fmt.Errorf("failed to read RESP prefix: %w", err)
+		return buffer, fmt.Errorf("failed to read BAE prefix: %w", err)
 	}
 
 	switch prefix {
@@ -44,7 +43,7 @@ func (enc RespEncoder) DecodeRESP(r io.Reader) ([]string, error) {
 		if err != nil || !strings.HasSuffix(line, "\r\n") {
 			return buffer, fmt.Errorf("malformed error string: %w", err)
 		}
-		return buffer, fmt.Errorf("RESP error: %s", strings.TrimSuffix(line, "\r\n"))
+		return buffer, fmt.Errorf("BAE error: %s", strings.TrimSuffix(line, "\r\n"))
 
 	case '$': // Bulk String
 		line, err := reader.ReadString('\n')
@@ -79,7 +78,7 @@ func (enc RespEncoder) DecodeRESP(r io.Reader) ([]string, error) {
 		}
 		var result []string
 		for i := 0; i < n; i++ {
-			elem, err := enc.DecodeRESP(reader)
+			elem, err := enc.DecodeBAE(reader)
 			if err != nil {
 				return buffer, fmt.Errorf("malformed array element: %w", err)
 			}
@@ -88,11 +87,11 @@ func (enc RespEncoder) DecodeRESP(r io.Reader) ([]string, error) {
 		return result, nil
 
 	default:
-		return buffer, fmt.Errorf("unknown RESP prefix: %c", prefix)
+		return buffer, fmt.Errorf("unknown BAE prefix: %c", prefix)
 	}
 }
 
-func (enc RespEncoder) EncodeRESPError(err error) []byte {
+func (enc BaeEncoder) EncodeBAEError(err error) []byte {
 	if err == nil {
 		return nil
 	}

@@ -5,7 +5,7 @@ import (
 	"log"
 
 	"github.com/KiritoCyanPine/smolBasket/configuration"
-	resp "github.com/KiritoCyanPine/smolBasket/encoder"
+	bae "github.com/KiritoCyanPine/smolBasket/encoder"
 	"github.com/KiritoCyanPine/smolBasket/handler"
 	"github.com/KiritoCyanPine/smolBasket/storage"
 	"github.com/panjf2000/gnet"
@@ -14,7 +14,7 @@ import (
 type kvServer struct {
 	*gnet.EventServer
 	storageManager storage.Manager
-	enc            resp.Encoder
+	enc            bae.Encoder
 }
 
 func (s *kvServer) OnInitComplete(server gnet.Server) (action gnet.Action) {
@@ -25,12 +25,12 @@ func (s *kvServer) OnInitComplete(server gnet.Server) (action gnet.Action) {
 func (s *kvServer) React(frame []byte, c gnet.Conn) (out []byte, action gnet.Action) {
 
 	if len(frame) == 0 {
-		return s.enc.EncodeRESPError(handler.ErrEmptyFrame), gnet.None
+		return s.enc.EncodeBAEError(handler.ErrEmptyFrame), gnet.None
 	}
 
-	commands, err := s.enc.DecodeRESP(bytes.NewReader(frame))
+	commands, err := s.enc.DecodeBAE(bytes.NewReader(frame))
 	if err != nil {
-		return s.enc.EncodeRESPError(err), gnet.None
+		return s.enc.EncodeBAEError(err), gnet.None
 	}
 
 	// route Handlers
@@ -43,9 +43,9 @@ func (s *kvServer) React(frame []byte, c gnet.Conn) (out []byte, action gnet.Act
 }
 
 func main() {
-	// Initialize the storage manager and RESP encoder
+	// Initialize the storage manager and BAE encoder
 	storageManager := storage.NewStorageManager()
-	encoder := resp.RespEncoder{}
+	encoder := bae.BaeEncoder{}
 
 	// Create the server instance
 	server := &kvServer{

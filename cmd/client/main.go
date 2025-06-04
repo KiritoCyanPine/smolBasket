@@ -52,7 +52,7 @@ func setupReadline() (*readline.Instance, error) {
 }
 
 func runClient(conn net.Conn, rl *readline.Instance) {
-	encoder := encoder.RespEncoder{}
+	encoder := encoder.BaeEncoder{}
 
 	for {
 		line, err := rl.Readline()
@@ -73,9 +73,9 @@ func runClient(conn net.Conn, rl *readline.Instance) {
 		}
 
 		cmd := splitCommand(line)
-		resp := encoder.EncodeRESPCommand(cmd...)
+		bae := encoder.EncodeBAECommand(cmd...)
 
-		if err := sendCommand(conn, resp); err != nil {
+		if err := sendCommand(conn, bae); err != nil {
 			fmt.Println("Write error:", err)
 			break
 		}
@@ -86,7 +86,7 @@ func runClient(conn net.Conn, rl *readline.Instance) {
 			break
 		}
 
-		reply, err := encoder.DecodeRESP(bytes.NewReader([]byte(serverResponse)))
+		reply, err := encoder.DecodeBAE(bytes.NewReader([]byte(serverResponse)))
 		if err != nil {
 			fmt.Println("Decode error:", err)
 			fmt.Println("Use the `HELP` command to know about smolBasket-cli commands")
